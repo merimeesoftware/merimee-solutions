@@ -25,9 +25,11 @@ Elyra lives here as a chapter in how I learned to use AI, not as a product to bu
 
 ## Stack
 
-TanStack Start + React + Vite + Tailwind. Postgres (Neon in production, PGLite in preview) for the contact form and signed-in inquiry inbox. Auth via Google / X.
+TanStack Start + React 19 + Vite + Tailwind v4. No application database and no auth.
 
-**Cloudflare** is the correct long-term home on this account (same shape as [True Rankings](https://github.com/merimeesoftware/cfb-ranking-algorithm)). Keep this app as the source of truth, then add a Workers static-assets + handler when it should live on the zone.
+The contact form posts to **Formspree** (or any compatible endpoint) via `VITE_FORMSPREE_ID` / `VITE_FORM_ENDPOINT`. Messages land in email; there is no signed-in inbox.
+
+**Cloudflare** is the intended long-term home (same shape as [True Rankings](https://github.com/merimeesoftware/cfb-ranking-algorithm)). See [DEPLOY-CLOUDFLARE.md](./DEPLOY-CLOUDFLARE.md) for the path from this source to a Workers / static-assets deploy.
 
 ---
 
@@ -37,8 +39,7 @@ TanStack Start + React + Vite + Tailwind. Postgres (Neon in production, PGLite i
 - `/work` — engineering first, then client delivery
 - `/work/:slug` — case notes; live link only if the host answered
 - `/about` — origin story + AI practice arc
-- `/contact` — conversational form, stored in Postgres
-- `/login` + `/inquiries` — signed-in inbox for those messages
+- `/contact` — conversational form → email (Formspree)
 
 ---
 
@@ -66,6 +67,23 @@ Only live URLs are offered as “Visit site.” Offline hosts are listed without
 | Elyra | [repo](https://github.com/merimeesoftware/elyra) | Source — AI practice, not a product |
 
 Private repos (`michaels-mind`, `life-ops`, family reunion, etc.) are not listed on the public site.
+
+---
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Optional env (Vite):
+
+- `VITE_FORMSPREE_ID` — Formspree form id (posts to `https://formspree.io/f/<id>`)
+- `VITE_FORM_ENDPOINT` — full URL override if not using Formspree
+- `VITE_PUBLIC_HOSTNAME` — used for absolute OG image URLs
+
+Without a form endpoint the contact UI still renders and points people to LinkedIn.
 
 ---
 
