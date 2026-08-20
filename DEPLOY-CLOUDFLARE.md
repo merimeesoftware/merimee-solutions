@@ -1,70 +1,65 @@
-# Deploy to Cloudflare
+# Deploy to Cloudflare (Resend contact form)
 
-This site is a TanStack Start app. The long-term home is Cloudflare (Workers + static assets), matching the pattern used on [True Rankings](https://github.com/merimeesoftware/cfb-ranking-algorithm).
+The portfolio is a TanStack Start app. Contact submissions run as a **server function** on the Cloudflare Worker host and are delivered by **Resend** to your Gmail. There is no database and no auth.
 
-There is **no application database** and **no auth**. The contact form is a client-side POST to Formspree (or any compatible endpoint). You only need to supply the form id as a build-time env var.
+## 1. Resend setup (once)
 
-## 1. Formspree (or equivalent)
+1. Create a free account at [resend.com](https://resend.com).
+2. **API Keys** → create a key. Copy it (`re_…`).
+3. Under emails / audience, make sure the address you want to receive mail is allowed.
+   - On the free tier with no custom domain, Resend sends **from** `onboarding@resend.dev` **to** the email on your Resend account (verify that address if asked).
+4. Optional later: add and verify your own domain, then set `CONTACT_FROM_EMAIL` to something like `Merimee <hello@yourdomain.com>`.
 
-1. Create a form at [formspree.io](https://formspree.io) (or use Web3Forms / your own endpoint).
-2. Note the form id (e.g. `xyzabcde`).
-3. Set it at build time:
+Target inbox for this project: **michaeltmerimee@gmail.com** (set via env below).
 
-```bash
-# Local
-export VITE_FORMSPREE_ID=xyzabcde
+## 2. Environment variables (Cloudflare)
 
-# Cloudflare Pages / Workers build settings
-# Environment variable: VITE_FORMSPREE_ID = xyzabcde
-```
+In the Pages / Workers project → **Settings → Variables and Secrets**:
 
-Optional overrides:
+| Name | Secret? | Example | Purpose |
+|------|---------|---------|---------|
+| `RESEND_API_KEY` | **Yes** | `re_xxxx` | Resend API key |
+| `CONTACT_TO_EMAIL` | No | `michaeltmerimee@gmail.com` | Where inquiries land |
+| `CONTACT_FROM_EMAIL` | No | `Merimee <onboarding@resend.dev>` | Optional; defaults to onboarding@resend.dev |
+| `VITE_PUBLIC_HOSTNAME` | No | `merimee.example.com` | Used for OG image absolute URL |
 
-- `VITE_FORM_ENDPOINT` — full URL if you are not using Formspree’s `/f/<id>` shape
-- `VITE_PUBLIC_HOSTNAME` — e.g. `merimee.example.com` so OG tags use absolute image URLs
+Do **not** prefix the Resend key with `VITE_` — it must stay server-only.
 
-Without these the form still renders and falls back to “use LinkedIn.”
+## 3. Deploy paths
 
-## 2. Build
+### Option A — Cloudflare Pages (simplest)
 
-```bash
-npm ci
-npm run build
-```
-
-Output lives under the Nitro / TanStack Start build directory (typically `.output` or `dist` depending on the current preset). The current Vite config uses the Vercel Nitro preset for local/CI convenience; for a pure Cloudflare target you can later switch the Nitro preset or move to Workers Assets + a thin handler.
-
-## 3. Cloudflare options
-
-### Option A — Cloudflare Pages (fastest path)
-
-1. Connect the `merimeesoftware/merimee-solutions` repo in the Cloudflare dashboard (or via Wrangler).
+1. Connect `merimeesoftware/merimee-solutions` in the Cloudflare dashboard.
 2. Build command: `npm run build`
-3. Output directory: whatever Nitro / TanStack Start emits for the static + SSR assets (inspect after a local build; commonly `.output/public` + server entry).
-4. Add the env vars above under **Settings → Environment variables**.
-5. Deploy. Point a custom domain when ready.
+3. Output directory: whatever Nitro / TanStack Start emits (inspect after a local build; commonly `.output/public` or the Workers Assets root).
+4. Add the env vars above.
+5. Deploy. Attach a custom domain when ready.
 
-### Option B — Workers + Assets (closer to True Rankings)
+### Option B — Workers + Assets (True Rankings shape)
 
-1. Produce a static-friendly build (or keep the SSR worker entry).
-2. Use Wrangler to publish assets + a Worker that serves the TanStack Start handler.
-3. Mirror the deploy shape already used for the CFB ranking worker so both projects share the same Cloudflare account, zones, and operational habits.
+1. Prefer the Cloudflare Vite plugin / `wrangler deploy` flow for TanStack Start when you want the same operational model as the CFB ranking worker.
+2. Set the same secrets via `wrangler secret put RESEND_API_KEY` and vars in the dashboard.
+3. Mirror account, zone, and habit with True Rankings.
 
-Exact Wrangler config and asset mapping can be added once the first Pages deploy is live and the output layout is confirmed.
+Exact Wrangler asset mapping can be tightened after the first successful Pages or Workers deploy when the build output layout is confirmed.
 
-## 4. What we deliberately removed
+## 4. What the form does
 
-- Better Auth (Google / X)
-- Postgres / Neon / PGLite
-- Signed-in `/inquiries` inbox
-- All server-side inquiry persistence
+- Client posts through a TanStack **server function** (`submitContact` in `src/lib/contact.ts`).
+- Server validates fields + honeypot, then `POST https://api.resend.com/emails`.
+- `reply_to` is the visitor’s address so you can hit Reply in Gmail.
+- No Postgres, no inbox UI, no auth.
 
-Inquiries now arrive as email. That keeps the surface area small enough for a static-first or thin-Worker Cloudflare deploy and matches the original request: “Any inquiry could just be an email form.”
+## 5. Free-tier headroom
 
-## 5. Smoke check after deploy
+- Resend free: **3,000 emails/month**, **100/day** — more than enough for a personal portfolio.
+- Cloudflare Pages free: unlimited static bandwidth, 500 builds/month.
 
-- `/` renders with the forest + copper palette and grain
-- `/work` and `/work/:slug` only show live external links
-- `/contact` submits when `VITE_FORMSPREE_ID` is set and shows the success state
-- OG image (`/og.jpg`) and favicon resolve
-- No references to `/login` or `/inquiries`
+## 6. Smoke check after deploy
+
+- `/` renders forest + copper palette
+- `/work` and `/work/:slug` only offer live external links
+- `/contact` submits and shows the success state when env vars are set
+- Submission appears in **michaeltmerimee@gmail.com** (check spam once)
+- OG image and favicon resolve
+- No `/login` or `/inquiries` routes

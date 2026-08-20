@@ -25,11 +25,19 @@ Elyra lives here as a chapter in how I learned to use AI, not as a product to bu
 
 ## Stack
 
-TanStack Start + React 19 + Vite + Tailwind v4. No application database and no auth.
+TanStack Start + React 19 + Vite + Tailwind v4.
 
-The contact form posts to **Formspree** (or any compatible endpoint) via `VITE_FORMSPREE_ID` / `VITE_FORM_ENDPOINT`. Messages land in email; there is no signed-in inbox.
+Contact form is a **server function** on the Cloudflare Worker host that sends mail through **Resend** (free tier). No application database and no auth. Messages land in Gmail (`CONTACT_TO_EMAIL`).
 
-**Cloudflare** is the intended long-term home (same shape as [True Rankings](https://github.com/merimeesoftware/cfb-ranking-algorithm)). See [DEPLOY-CLOUDFLARE.md](./DEPLOY-CLOUDFLARE.md) for the path from this source to a Workers / static-assets deploy.
+**Cloudflare** is the long-term home (same shape as [True Rankings](https://github.com/merimeesoftware/cfb-ranking-algorithm)). See [`DEPLOY-CLOUDFLARE.md`](./DEPLOY-CLOUDFLARE.md).
+
+### Contact env (server only)
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `RESEND_API_KEY` | Yes | From [resend.com/api-keys](https://resend.com/api-keys) |
+| `CONTACT_TO_EMAIL` | Yes | e.g. `michaeltmerimee@gmail.com` |
+| `CONTACT_FROM_EMAIL` | No | Defaults to `Merimee <onboarding@resend.dev>` until you verify a domain |
 
 ---
 
@@ -39,7 +47,7 @@ The contact form posts to **Formspree** (or any compatible endpoint) via `VITE_F
 - `/work` — engineering first, then client delivery
 - `/work/:slug` — case notes; live link only if the host answered
 - `/about` — origin story + AI practice arc
-- `/contact` — conversational form → email (Formspree)
+- `/contact` — conversational form → Resend → your inbox
 
 ---
 
@@ -67,23 +75,6 @@ Only live URLs are offered as “Visit site.” Offline hosts are listed without
 | Elyra | [repo](https://github.com/merimeesoftware/elyra) | Source — AI practice, not a product |
 
 Private repos (`michaels-mind`, `life-ops`, family reunion, etc.) are not listed on the public site.
-
----
-
-## Run locally
-
-```bash
-npm install
-npm run dev
-```
-
-Optional env (Vite):
-
-- `VITE_FORMSPREE_ID` — Formspree form id (posts to `https://formspree.io/f/<id>`)
-- `VITE_FORM_ENDPOINT` — full URL override if not using Formspree
-- `VITE_PUBLIC_HOSTNAME` — used for absolute OG image URLs
-
-Without a form endpoint the contact UI still renders and points people to LinkedIn.
 
 ---
 

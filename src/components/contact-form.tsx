@@ -1,10 +1,10 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { submitInquiry } from "@/lib/inquiries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SITE } from "@/data/site";
+import { submitContact } from "@/lib/contact";
 import { ArrowUpRight } from "lucide-react";
 
 const CONTEXTS = [
@@ -21,10 +21,12 @@ export function ContactForm() {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
+
     setStatus("sending");
     setError("");
+
     try {
-      await submitInquiry({
+      await submitContact({
         data: {
           name: String(fd.get("name") ?? ""),
           email: String(fd.get("email") ?? ""),
@@ -37,7 +39,9 @@ export function ContactForm() {
       form.reset();
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Couldn't send that. Try again.");
+      setError(
+        err instanceof Error ? err.message : "Couldn’t send that. Try LinkedIn.",
+      );
     }
   }
 
@@ -48,10 +52,10 @@ export function ContactForm() {
           Got it
         </p>
         <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight">
-          I'll read it.
+          I’ll read it.
         </h2>
         <p className="mt-4 max-w-prose text-muted">
-          If it's urgent, LinkedIn is the faster tap. Otherwise I'll come back through
+          If it’s urgent, LinkedIn is the faster tap. Otherwise I’ll come back through
           email.
         </p>
         <a
@@ -77,7 +81,9 @@ export function ContactForm() {
         </Field>
       </div>
       <fieldset>
-        <legend className="mb-3 text-sm font-medium text-muted">What's the shape of this?</legend>
+        <legend className="mb-3 text-sm font-medium text-muted">
+          What’s the shape of this?
+        </legend>
         <div className="grid gap-2">
           {CONTEXTS.map((c) => (
             <label
@@ -102,9 +108,10 @@ export function ContactForm() {
           name="message"
           required
           minLength={20}
-          placeholder="What's stuck, who's in the room, and what 'done' would look like."
+          placeholder="What’s stuck, who’s in the room, and what ‘done’ would look like."
         />
       </Field>
+      {/* Honeypot — bots fill it; humans never see it */}
       <div className="hidden" aria-hidden="true">
         <label>
           Company

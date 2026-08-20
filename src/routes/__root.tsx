@@ -4,9 +4,7 @@ import {
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SiteShell } from "@/components/site-shell";
 import { SITE } from "@/data/site";
@@ -19,14 +17,7 @@ const xBanner = host
   ? `https://og.grok.me/v1/banner.png?host=${encodeURIComponent(host)}&title=${encodeURIComponent(APP_NAME)}&color=E06A2B`
   : undefined;
 
-const fetchSessionUser = createServerFn({ method: "GET" }).handler(async () => {
-  const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const u = await getSessionUser();
-  return u ? { id: u.id, email: u.email } : null;
-});
-
 export const Route = createRootRoute({
-  beforeLoad: async () => ({ sessionUser: await fetchSessionUser() }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -73,11 +64,9 @@ function Root() {
       </head>
       <body className="bg-bg text-fg">
         <PreviewHostBridge />
-        <AuthProvider>
-          <SiteShell>
-            <Outlet />
-          </SiteShell>
-        </AuthProvider>
+        <SiteShell>
+          <Outlet />
+        </SiteShell>
         <Toaster theme="dark" position="bottom-right" />
         <Scripts />
       </body>
@@ -92,7 +81,7 @@ function NotFound() {
         404
       </p>
       <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight">
-        That page isn't here.
+        That page isn’t here.
       </h1>
       <p className="mt-4 text-muted">
         The work, the story, and the conversation still are.

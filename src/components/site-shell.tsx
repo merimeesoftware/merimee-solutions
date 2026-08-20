@@ -1,20 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { SignedIn, SignedOut, UserButton } from "@/lib/auth/gates";
-import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { NAV, SITE } from "@/data/site";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-function AuthSlot() {
-  const { user, isPending } = useCurrentUserState();
-  if (isPending) {
-    return <div className="h-8 w-8 animate-pulse rounded-full bg-elevated" />;
-  }
-  if (user) return <UserButton />;
-  return null;
-}
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -56,9 +45,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <AuthSlot />
-            </div>
             <Button asChild size="sm">
               <Link to="/contact">
                 <span className="sm:hidden">Talk</span>
@@ -88,15 +74,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
                   {item.label}
                 </Link>
               ))}
-              <SignedIn>
-                <Link
-                  to="/inquiries"
-                  onClick={() => setOpen(false)}
-                  className="rounded-md px-2 py-3 text-base text-muted"
-                >
-                  Inbox
-                </Link>
-              </SignedIn>
             </nav>
           </div>
         ) : null}
@@ -129,16 +106,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
             >
               GitHub <ArrowUpRight className="size-3.5" />
             </a>
-            <SignedOut>
-              <Link to="/login" className="hover:text-fg">
-                Sign in
-              </Link>
-            </SignedOut>
-            <SignedIn>
-              <Link to="/inquiries" className="hover:text-fg">
-                Inbox
-              </Link>
-            </SignedIn>
+            <Link to="/contact" className="hover:text-fg">
+              Contact
+            </Link>
           </div>
         </div>
       </footer>
